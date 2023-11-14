@@ -1,7 +1,7 @@
 
 Trino Community Kubernetes Helm Charts
 ===========
-[![Release Trino Chart](https://github.com/trinodb/charts/actions/workflows/release.yaml/badge.svg?branch=main)](https://github.com/trinodb/charts/actions/workflows/release.yaml)
+[![CI/CD](https://github.com/trinodb/charts/actions/workflows/ci-cd.yaml/badge.svg?branch=main)](https://github.com/trinodb/charts/actions/workflows/ci-cd.yaml)
 
 Fast distributed SQL query engine for big data analytics that helps you explore your data universe
 
@@ -22,7 +22,7 @@ You can then run `helm search repo trino` to see the charts.
 Then you can install chart using:
 
 ```console
-helm install my-trino trino/trino --version 0.5.0
+helm install my-trino trino/trino --version 0.14.0
 ```
 
 ## Documentation
