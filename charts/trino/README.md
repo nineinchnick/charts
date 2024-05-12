@@ -11,9 +11,12 @@ The following table lists the configurable parameters of the Trino chart and the
 
 | Parameter                | Description             | Default        |
 | ------------------------ | ----------------------- | -------------- |
-| `image.repository` |  | `"trinodb/trino"` |
+| `image.registry` | Image registry, defaults to empty, which results in DockerHub usage | `""` |
+| `image.repository` | Repository location of the Trino image, typically `organization/imagename` | `"trinodb/trino"` |
+| `image.tag` | Image tag, defaults to the Trino release version specified as `appVersion` from Chart.yaml | `""` |
+| `image.digest` | Optional digest value of the image specified as `sha256:abcd...`. A specified value overrides `tag`. | `""` |
+| `image.useRepositoryAsSoleImageReference` | When true, only the content in `repository` is used as image reference | `false` |
 | `image.pullPolicy` |  | `"IfNotPresent"` |
-| `image.tag` |  | `432` |
 | `imagePullSecrets` |  | `[{"name": "registry-credentials"}]` |
 | `server.workers` |  | `2` |
 | `server.node.environment` |  | `"production"` |
@@ -34,7 +37,9 @@ The following table lists the configurable parameters of the Trino chart and the
 | `server.autoscaling.enabled` |  | `false` |
 | `server.autoscaling.maxReplicas` |  | `5` |
 | `server.autoscaling.targetCPUUtilizationPercentage` |  | `50` |
+| `server.autoscaling.behavior` |  | `{}` |
 | `accessControl` |  | `{}` |
+| `resourceGroups` |  | `{}` |
 | `additionalNodeProperties` |  | `{}` |
 | `additionalConfigProperties` |  | `{}` |
 | `additionalLogProperties` |  | `{}` |
@@ -61,15 +66,19 @@ The following table lists the configurable parameters of the Trino chart and the
 | `coordinator.jvm.gcMethod.g1.heapRegionSize` |  | `"32M"` |
 | `coordinator.config.memory.heapHeadroomPerNode` |  | `""` |
 | `coordinator.config.query.maxMemoryPerNode` |  | `"1GB"` |
-| `coordinator.additionalJVMConfig` |  | `{}` |
+| `coordinator.additionalJVMConfig` |  | `[]` |
 | `coordinator.additionalExposedPorts` |  | `{}` |
 | `coordinator.resources` |  | `{}` |
 | `coordinator.livenessProbe` |  | `{}` |
 | `coordinator.readinessProbe` |  | `{}` |
+| `coordinator.lifecycle` |  | `{}` |
+| `coordinator.terminationGracePeriodSeconds` |  | `30` |
 | `coordinator.nodeSelector` |  | `{}` |
 | `coordinator.tolerations` |  | `[]` |
 | `coordinator.affinity` |  | `{}` |
 | `coordinator.additionalConfigFiles` |  | `{}` |
+| `coordinator.additionalVolumes` | One or more additional volumes to add to the coordinator. | `[]` |
+| `coordinator.additionalVolumeMounts` | One or more additional volume mounts to add to the coordinator. | `[]` |
 | `coordinator.annotations` |  | `{}` |
 | `coordinator.labels` |  | `{}` |
 | `coordinator.secretMounts` |  | `[]` |
@@ -78,15 +87,19 @@ The following table lists the configurable parameters of the Trino chart and the
 | `worker.jvm.gcMethod.g1.heapRegionSize` |  | `"32M"` |
 | `worker.config.memory.heapHeadroomPerNode` |  | `""` |
 | `worker.config.query.maxMemoryPerNode` |  | `"1GB"` |
-| `worker.additionalJVMConfig` |  | `{}` |
+| `worker.additionalJVMConfig` |  | `[]` |
 | `worker.additionalExposedPorts` |  | `{}` |
 | `worker.resources` |  | `{}` |
 | `worker.livenessProbe` |  | `{}` |
 | `worker.readinessProbe` |  | `{}` |
+| `worker.lifecycle` |  | `{}` |
+| `worker.terminationGracePeriodSeconds` |  | `30` |
 | `worker.nodeSelector` |  | `{}` |
 | `worker.tolerations` |  | `[]` |
 | `worker.affinity` |  | `{}` |
 | `worker.additionalConfigFiles` |  | `{}` |
+| `worker.additionalVolumes` | One or more additional volume mounts to add to all workers. | `[]` |
+| `worker.additionalVolumeMounts` | One or more additional volume mounts to add to all workers. | `[]` |
 | `worker.annotations` |  | `{}` |
 | `worker.labels` |  | `{}` |
 | `worker.secretMounts` |  | `[]` |
