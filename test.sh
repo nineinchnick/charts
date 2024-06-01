@@ -7,6 +7,7 @@ declare -A testCases=(
     [single_node]="--set server.workers=0"
     [complete_values]="--values test-values.yaml"
     [overrides]="--set coordinatorNameOverride=coordinator-overridden,workerNameOverride=worker-overridden,nameOverride=overridden"
+    [dynamic_catalogs]="--values dyncat-values.yaml"
 )
 
 function join_by {
@@ -75,6 +76,19 @@ fi
 
 kubectl create namespace "$NAMESPACE"
 kubectl -n "$NAMESPACE" create secret tls certificates --cert=cert.crt --key=cert.key
+cat <<YAML | kubectl -n "$NAMESPACE" create -f -
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: catalogs-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: standard
+  resources:
+    requests:
+      storage: 30Mi
+YAML
 
 CT_ARGS+=(--namespace "$NAMESPACE")
 
