@@ -65,11 +65,13 @@ shift $((OPTIND - 1))
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 cd "${SCRIPT_DIR}" || exit 2
 
-echo 1>&2 "Generating a self-signed TLS certificate"
-openssl req -new -newkey rsa:4096 -days 365 -nodes -x509 \
-    -subj "/O=Trino Software Foundation" \
-    -addext "subjectAltName=DNS:localhost,DNS:*.$NAMESPACE,DNS:*.$NAMESPACE.svc,DNS:*.$NAMESPACE.svc.cluster.local,IP:127.0.0.1" \
-    -keyout cert.key -out cert.crt
+if [ ! -f cert.key ] || [ ! -f cert.crt ]; then
+    echo 1>&2 "Generating a self-signed TLS certificate"
+    openssl req -new -newkey rsa:4096 -days 365 -nodes -x509 \
+        -subj "/O=Trino Software Foundation" \
+        -addext "subjectAltName=DNS:localhost,DNS:*.$NAMESPACE,DNS:*.$NAMESPACE.svc,DNS:*.$NAMESPACE.svc.cluster.local,IP:127.0.0.1" \
+        -keyout cert.key -out cert.crt
+fi
 
 kubectl create namespace "$NAMESPACE"
 kubectl -n "$NAMESPACE" create secret tls certificates --cert=cert.crt --key=cert.key
