@@ -2,6 +2,24 @@ apiVersion: v1
 entries:
   trino:
   - apiVersion: v2
+    appVersion: "450"
+    created: "2024-06-26T08:04:07.693017196Z"
+    description: Fast distributed SQL query engine for big data analytics that helps
+      you explore your data universe
+    digest: aca8b9f6095764207195371fe86c427da4d3b81f3ef32c38abf1157ef7f4d967
+    home: https://trino.io/
+    icon: https://trino.io/assets/trino.png
+    maintainers:
+    - name: Trino community
+    name: trino
+    sources:
+    - https://github.com/trinodb/charts
+    - https://github.com/trinodb/trino/tree/master/core/docker
+    type: application
+    urls:
+    - https://github.com/nineinchnick/charts/releases/download/trino-0.25.0/trino-0.25.0.tgz
+    version: 0.25.0
+  - apiVersion: v2
     appVersion: "446"
     created: "2024-05-12T09:35:25.263899109Z"
     description: Fast distributed SQL query engine for big data analytics that helps
@@ -19,4 +37,4 @@ entries:
     urls:
     - https://github.com/nineinchnick/charts/releases/download/trino-0.20.0/trino-0.20.0.tgz
     version: 0.20.0
-generated: "2024-05-12T09:35:25.263908387Z"
+generated: "2024-06-26T08:04:07.693029389Z"
