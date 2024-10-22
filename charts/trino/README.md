@@ -427,7 +427,6 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
      servicePort: 8443
      name: https
      port: 8443
-     nodePort: 30443
      protocol: TCP
   ```
 * `coordinator.resources` - object, default: `{}`  
