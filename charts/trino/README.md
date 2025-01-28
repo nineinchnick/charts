@@ -1,6 +1,6 @@
 # trino
 
-![Version: 0.32.0](https://img.shields.io/badge/Version-0.32.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 461](https://img.shields.io/badge/AppVersion-461-informational?style=flat-square)
+![Version: 1.36.0](https://img.shields.io/badge/Version-1.36.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 468](https://img.shields.io/badge/AppVersion-468-informational?style=flat-square)
 
 Fast distributed SQL query engine for big data analytics that helps you explore your data universe
 
@@ -62,13 +62,14 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
 * `server.config.query.maxMemory` - string, default: `"4GB"`
 * `server.exchangeManager` - object, default: `{}`  
 
-  Mandatory [exchange manager configuration](https://trino.io/docs/current/admin/fault-tolerant-execution.html#id1). Used to set the name and location(s) of the spooling storage destination. To enable fault-tolerant execution, set the `retry-policy` property in `additionalConfigProperties`. Additional exchange manager configurations can be added to `additionalExchangeManagerProperties`.
+  Mandatory [exchange manager configuration](https://trino.io/docs/current/admin/fault-tolerant-execution.html#id1). Used to set the name and location(s) of spooling data storage. For multiple destinations use a list or a comma separated URI locations. To enable fault-tolerant execution, set the `retry-policy` property in `additionalConfigProperties`. Additional exchange manager configurations can be added to `additionalExchangeManagerProperties`.
   Example:
   ```yaml
   server:
     exchangeManager:
       name: "filesystem"
-      baseDir: "/tmp/trino-local-file-system-exchange-manager"
+      baseDir:
+        - "/tmp/trino-local-file-system-exchange-manager"
   additionalConfigProperties:
     - retry-policy=TASK
   additionalExchangeManagerProperties:
@@ -175,9 +176,23 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
   ```
 * `resourceGroups` - object, default: `{}`  
 
-  Resource groups file is mounted to /etc/trino/resource-groups/resource-groups.json
-  Example:
+  [Resource groups control](https://trino.io/docs/current/admin/resource-groups.html)
+  Set the type property to either:
+  * `configmap`, and provide the Resource groups file contents in `resourceGroupsConfig`,
+  * `properties`, and provide configuration properties in `properties`.
+  Properties example:
   ```yaml
+   type: properties
+   properties: |
+     resource-groups.configuration-manager=db
+     resource-groups.config-db-url=jdbc:postgresql://trino-postgresql.postgresql.svc.cluster.local:3306/resource_groups
+     resource-groups.config-db-user=username
+     resource-groups.config-db-password=password
+  ```
+  Config map example:
+  ```yaml
+   type: configmap
+   # Resource groups file is mounted to /etc/trino/resource-groups/resource-groups.json
    resourceGroupsConfig: |-
        {
          "rootGroups": [
@@ -376,6 +391,10 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
    refreshPeriod: 5s
    groups: "group_name:user_1,user_2,user_3"
   ```
+  Set the name of a secret containing this file in the group.db key
+  ```yaml
+   groupAuthSecret: "trino-group-authentication"
+  ```
 * `serviceAccount.create` - bool, default: `false`  
 
   Specifies whether a service account should be created
@@ -403,6 +422,7 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
      secretName: sample-secret
      path: /secrets/sample.json
   ```
+* `coordinator.deployment.annotations` - object, default: `{}`
 * `coordinator.deployment.progressDeadlineSeconds` - int, default: `600`  
 
   The maximum time in seconds for a deployment to make progress before it is considered failed. The deployment controller continues to process failed deployments and a condition with a ProgressDeadlineExceeded reason is surfaced in the deployment status.
@@ -427,6 +447,7 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
      servicePort: 8443
      name: https
      port: 8443
+     nodePort: 30443
      protocol: TCP
   ```
 * `coordinator.resources` - object, default: `{}`  
@@ -519,6 +540,7 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
      secretName: sample-secret
      path: /secrets/sample.json
   ```
+* `worker.deployment.annotations` - object, default: `{}`
 * `worker.deployment.progressDeadlineSeconds` - int, default: `600`  
 
   The maximum time in seconds for a deployment to make progress before it is considered failed. The deployment controller continues to process failed deployments and a condition with a ProgressDeadlineExceeded reason is surfaced in the deployment status.
@@ -693,7 +715,7 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
 * `jmx.exporter.enabled` - bool, default: `false`  
 
   Set to true to export JMX Metrics via HTTP for [Prometheus](https://github.com/prometheus/jmx_exporter) consumption
-* `jmx.exporter.image` - string, default: `"bitnami/jmx-exporter:latest"`
+* `jmx.exporter.image` - string, default: `"bitnami/jmx-exporter:1.0.1"`
 * `jmx.exporter.pullPolicy` - string, default: `"Always"`
 * `jmx.exporter.port` - int, default: `5556`
 * `jmx.exporter.configProperties` - string, default: `""`  
@@ -743,7 +765,7 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
   coordinator:
     enabled: true
     exporter:
-      enable: true
+      enabled: true
       configProperties: |-
         hostPort: localhost:{{- .Values.jmx.registryPort }}
         startDelaySeconds: 0
@@ -757,11 +779,12 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
   worker:
     enabled: true
     exporter:
-      enable: true
+      enabled: true
   ```
 * `serviceMonitor.enabled` - bool, default: `false`  
 
   Set to true to create resources for the [prometheus-operator](https://github.com/prometheus-operator/prometheus-operator).
+* `serviceMonitor.apiVersion` - string, default: `"monitoring.coreos.com/v1"`
 * `serviceMonitor.labels` - object, default: `{"prometheus":"kube-prometheus"}`  
 
   Labels for serviceMonitor, so that Prometheus can select it
