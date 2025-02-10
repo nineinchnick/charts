@@ -412,6 +412,7 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
    - name: sample-config-mount
      configMap: sample-config-map
      path: /config-map/sample.json
+     subPath: sample.json
   ```
 * `secretMounts` - list, default: `[]`  
 
@@ -421,6 +422,7 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
    - name: sample-secret
      secretName: sample-secret
      path: /secrets/sample.json
+     subPath: sample.json
   ```
 * `coordinator.deployment.annotations` - object, default: `{}`
 * `coordinator.deployment.progressDeadlineSeconds` - int, default: `600`  
@@ -530,6 +532,7 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
    - name: sample-config-mount
      configMap: sample-config-mount
      path: /config-mount/sample.json
+     subPath: sample.json
   ```
 * `coordinator.secretMounts` - list, default: `[]`  
 
@@ -539,6 +542,7 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
    - name: sample-secret
      secretName: sample-secret
      path: /secrets/sample.json
+     subPath: sample.json
   ```
 * `worker.deployment.annotations` - object, default: `{}`
 * `worker.deployment.progressDeadlineSeconds` - int, default: `600`  
@@ -658,6 +662,7 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
   - name: sample-config-mount
     configMap: sample-config-mount
     path: /config-mount/sample.json
+    subPath: sample.json
   ```
 * `worker.secretMounts` - list, default: `[]`  
 
@@ -667,6 +672,7 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
    - name: sample-secret
      secretName: sample-secret
      path: /secrets/sample.json
+     subPath: sample.json
   ```
 * `kafka.mountPath` - string, default: `"/etc/trino/schemas"`
 * `kafka.tableDescriptions` - object, default: `{}`  
