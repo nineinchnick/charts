@@ -2,6 +2,24 @@ apiVersion: v1
 entries:
   trino:
   - apiVersion: v2
+    appVersion: "470"
+    created: "2025-02-19T08:53:34.25599236Z"
+    description: Fast distributed SQL query engine for big data analytics that helps
+      you explore your data universe
+    digest: 92718663e8773dea147c19700c86488e4e5f6169557d730461b9003ea772b56b
+    home: https://trino.io/
+    icon: https://trino.io/assets/trino.png
+    maintainers:
+    - name: Trino community
+    name: trino
+    sources:
+    - https://github.com/trinodb/charts
+    - https://github.com/trinodb/trino/tree/master/core/docker
+    type: application
+    urls:
+    - https://github.com/nineinchnick/charts/releases/download/trino-1.37.0/trino-1.37.0.tgz
+    version: 1.37.0
+  - apiVersion: v2
     appVersion: "468"
     created: "2025-01-28T08:21:13.676406486Z"
     description: Fast distributed SQL query engine for big data analytics that helps
@@ -111,6 +129,23 @@ entries:
     version: 0.20.0
   trino-gateway:
   - apiVersion: v2
+    appVersion: "14"
+    created: "2025-02-19T08:53:34.388909359Z"
+    description: A Helm chart for Trino Gateway
+    digest: 3c2acda33175c4ec3c0ca5f54f605aa24f2a5c4f91241cf1999583686ddcbcc2
+    home: https://trinodb.github.io/trino-gateway/
+    icon: https://trino.io/assets/images/logos/trino-gateway-small.png
+    maintainers:
+    - name: Trino community
+    name: trino-gateway
+    sources:
+    - https://github.com/trinodb/charts
+    - https://github.com/trinodb/trino-gateway
+    type: application
+    urls:
+    - https://github.com/nineinchnick/charts/releases/download/trino-gateway-1.14.0/trino-gateway-1.14.0.tgz
+    version: 1.14.0
+  - apiVersion: v2
     appVersion: "13"
     created: "2025-01-28T08:21:13.873563109Z"
     description: A Helm chart for Trino Gateway
@@ -127,4 +162,4 @@ entries:
     urls:
     - https://github.com/nineinchnick/charts/releases/download/trino-gateway-1.13.2/trino-gateway-1.13.2.tgz
     version: 1.13.2
-generated: "2025-01-28T08:21:13.873594848Z"
+generated: "2025-02-19T08:53:34.38896372Z"
