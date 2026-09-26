@@ -2,6 +2,24 @@ apiVersion: v1
 entries:
   trino:
   - apiVersion: v2
+    appVersion: "480"
+    created: "2026-09-26T12:01:46.953072559Z"
+    description: Fast distributed SQL query engine for big data analytics that helps
+      you explore your data universe
+    digest: 7a0a887a28737283f220747f2bd73fa00210927c2df44f0da453cf03e496bff4
+    home: https://trino.io/
+    icon: https://trino.io/assets/trino.png
+    maintainers:
+    - name: Trino community
+    name: trino
+    sources:
+    - https://github.com/trinodb/charts
+    - https://github.com/trinodb/trino/tree/master/core/docker
+    type: application
+    urls:
+    - https://github.com/nineinchnick/charts/releases/download/trino-1.42.2/trino-1.42.2.tgz
+    version: 1.42.2
+  - apiVersion: v2
     appVersion: "470"
     created: "2025-02-19T08:53:34.25599236Z"
     description: Fast distributed SQL query engine for big data analytics that helps
@@ -129,6 +147,23 @@ entries:
     version: 0.20.0
   trino-gateway:
   - apiVersion: v2
+    appVersion: "21"
+    created: "2026-09-26T12:01:47.085861956Z"
+    description: A Helm chart for Trino Gateway
+    digest: f3d2e4a33d5d96ff76df9dac1852ea351f8706bdf07a513eada2337861023da7
+    home: https://trinodb.github.io/trino-gateway/
+    icon: https://trino.io/assets/images/logos/trino-gateway-small.png
+    maintainers:
+    - name: Trino community
+    name: trino-gateway
+    sources:
+    - https://github.com/trinodb/charts
+    - https://github.com/trinodb/trino-gateway
+    type: application
+    urls:
+    - https://github.com/nineinchnick/charts/releases/download/trino-gateway-1.21.0/trino-gateway-1.21.0.tgz
+    version: 1.21.0
+  - apiVersion: v2
     appVersion: "14"
     created: "2025-02-19T08:53:34.388909359Z"
     description: A Helm chart for Trino Gateway
@@ -162,4 +197,4 @@ entries:
     urls:
     - https://github.com/nineinchnick/charts/releases/download/trino-gateway-1.13.2/trino-gateway-1.13.2.tgz
     version: 1.13.2
-generated: "2025-02-19T08:53:34.38896372Z"
+generated: "2026-09-26T12:01:47.085907371Z"
