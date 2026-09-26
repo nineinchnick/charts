@@ -1,6 +1,6 @@
 # trino-gateway
 
-![Version: 1.14.0](https://img.shields.io/badge/Version-1.14.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 14](https://img.shields.io/badge/AppVersion-14-informational?style=flat-square)
+![Version: 1.21.0](https://img.shields.io/badge/Version-1.21.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 21](https://img.shields.io/badge/AppVersion-21-informational?style=flat-square)
 
 A Helm chart for Trino Gateway
 
@@ -37,8 +37,22 @@ A Helm chart for Trino Gateway
     - secretRef:
         name: password-secret
   ```
+* `initContainers` - object, default: `{}`  
+
+  Additional [containers that run to completion](https://kubernetes.io/docs/concepts/workloads/pods/init-containers/) during pod initialization.
+  Example:
+  ```yaml
+  initContainers:
+    - name: wait-for-service
+      image: busybox:1.28
+      imagePullPolicy: IfNotPresent
+      command: ['sh', '-c', "until nslookup {{ .Values.serviceName }}.$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace).svc.cluster.local; do echo waiting for myservice; sleep 2; done"]
+    - name: init-sleep
+      image: busybox:1.28
+      imagePullPolicy: IfNotPresent
+      command: ['sh', '-c', 'echo The worker is running! && sleep 3600']
+  ```
 * `config.serverConfig."node.environment"` - string, default: `"test"`
-* `config.serverConfig."http-server.http.port"` - int, default: `8080`
 * `config.serverConfig."http-server.http.enabled"` - bool, default: `true`
 * `config.dataStore.jdbcUrl` - string, default: `"jdbc:postgresql://localhost:5432/gateway"`  
 
@@ -47,7 +61,7 @@ A Helm chart for Trino Gateway
 * `config.dataStore.password` - string, default: `"mysecretpassword"`
 * `config.dataStore.driver` - string, default: `"org.postgresql.Driver"`
 * `config.clusterStatsConfiguration.monitorType` - string, default: `"INFO_API"`
-* `command` - list, default: `["java","-XX:MinRAMPercentage=80.0","-XX:MaxRAMPercentage=80.0","-jar","/usr/lib/trino/gateway-ha-jar-with-dependencies.jar","/etc/gateway/config.yaml"]`  
+* `command` - list, default: `["java","-XX:MinRAMPercentage=80.0","-XX:MaxRAMPercentage=80.0","-jar","/usr/lib/trino-gateway/gateway-ha-jar-with-dependencies.jar","/etc/trino-gateway/config.yaml"]`  
 
   Startup command for Trino Gateway process. Add additional Java options and other modifications as desired.
 * `service` - object, default: `{"ports":[{"name":"gateway","protocol":"TCP"}],"type":"ClusterIP"}`  
@@ -116,16 +130,51 @@ A Helm chart for Trino Gateway
 * `readinessProbe.failureThreshold` - int, default: `12`
 * `readinessProbe.timeoutSeconds` - int, default: `1`
 * `readinessProbe.scheme` - string, default: `"HTTP"`
-* `volumes` - object, default: `{}`
-* `volumeMounts` - object, default: `{}`
+* `volumes` - list, default: `[]`
+* `volumeMounts` - list, default: `[]`
+* `lifecycle` - object, default: `{}`  
+
+  Container lifecycle events.
+  Example:
+  ```yaml
+   preStop:
+     exec:
+       command: ["/bin/sh", "-c", "sleep 120"]
+  ```
+* `terminationGracePeriodSeconds` - int, default: `30`
 * `nodeSelector` - object, default: `{}`
 * `tolerations` - list, default: `[]`
+* `topologySpreadConstraints` - list, default: `[]`  
+
+  [Deployment Topology Spread Constraints](https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/) configuration. Useful to control how Pods are spread across domains such as regions, zones, nodes etc.
+  Example:
+  ```yaml
+   - maxSkew: 1
+     topologyKey: "kubernetes.io/hostname"
+     whenUnsatisfiable: ScheduleAnyway
+   - maxSkew: 1
+     topologyKey: "topology.kubernetes.io/zone"
+     whenUnsatisfiable: ScheduleAnyway
+  ```
 * `affinity` - object, default: `{}`
 * `commonLabels` - object, default: `{}`  
 
   Labels that get applied to every resource's metadata
-* `podAnnotations` - object, default: `{}`
+* `podAnnotations` - object, default: `{}`  
+
+  Annotations to add to the Gateway pods.
+  By default, all pods will have the `checksum/trino-gateway-config` annotation with the
+  checksum of the current configuration file. This is used to trigger a rolling update of the deployment when the
+  configuration changes. This behaviour can be disabled by manually setting this annotation to a fixed constant.
+  Example:
+  ```yaml
+   podAnnotations:
+     checksum/trino-gateway-config: ""
+  ```
 * `podLabels` - object, default: `{}`
+* `podDisruptionBudget` - object, default: `{"minAvailable":1}`  
+
+  [Pod Disruption Budget](https://kubernetes.io/docs/concepts/workloads/pods/disruptions/#pod-disruption-budgets) configuration.
 * `podSecurityContext` - object, default: `{}`  
 
   [Pod security context](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-pod) configuration. To remove the default, set it to null (or `~`).
@@ -152,6 +201,18 @@ A Helm chart for Trino Gateway
 * `serviceAccount.name` - string, default: `""`  
 
   The name of the service account to use. If not set and create is true, a name is generated using the fullname template
+* `strategy` - object, default: `{"rollingUpdate":{"maxSurge":"25%","maxUnavailable":"25%"},"type":"RollingUpdate"}`  
+
+  The deployment strategy to use to replace existing pods with new ones.
+* `serviceMonitor.enabled` - bool, default: `false`  
+
+  Set to true to create resources for the [prometheus-operator](https://github.com/prometheus-operator/prometheus-operator).
+* `serviceMonitor.labels` - object, default: `{"prometheus":"kube-prometheus"}`  
+
+  Labels for serviceMonitor, so that Prometheus can select it
+* `serviceMonitor.interval` - string, default: `"30s"`  
+
+  The serviceMonitor web endpoint interval
 
 ----------------------------------------------
 Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)

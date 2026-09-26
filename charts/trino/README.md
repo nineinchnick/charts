@@ -1,6 +1,6 @@
 # trino
 
-![Version: 1.37.0](https://img.shields.io/badge/Version-1.37.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 470](https://img.shields.io/badge/AppVersion-470-informational?style=flat-square)
+![Version: 1.42.2](https://img.shields.io/badge/Version-1.42.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 480](https://img.shields.io/badge/AppVersion-480-informational?style=flat-square)
 
 Fast distributed SQL query engine for big data analytics that helps you explore your data universe
 
@@ -20,7 +20,9 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
   coordinatorNameOverride: trino-coordinator-adhoc
   workerNameOverride: trino-worker-adhoc
   nameOverride: trino-adhoc
+  fullnameOverride: trino-adhoc
   ```
+* `fullnameOverride` - string, default: `nil`
 * `coordinatorNameOverride` - string, default: `nil`
 * `workerNameOverride` - string, default: `nil`
 * `image.registry` - string, default: `""`  
@@ -48,7 +50,9 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
     - name: registry-credentials
   ```
 * `server.workers` - int, default: `2`
-* `server.node.environment` - string, default: `"production"`
+* `server.node.environment` - string, default: `"production"`  
+
+  Supports templating with `tpl`.
 * `server.node.dataDir` - string, default: `"/data/trino"`
 * `server.node.pluginDir` - string, default: `"/usr/lib/trino/plugin"`
 * `server.log.trino.level` - string, default: `"INFO"`
@@ -58,7 +62,7 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
 * `server.config.https.keystore.path` - string, default: `""`
 * `server.config.authenticationType` - string, default: `""`  
 
-  Trino supports multiple [authentication types](https://trino.io/docs/current/security/authentication-types.html): PASSWORD, CERTIFICATE, OAUTH2, JWT, KERBEROS.
+  Trino supports multiple [authentication types](https://trino.io/docs/current/security/authentication-types.html): PASSWORD, CERTIFICATE, OAUTH2, JWT, KERBEROS, HEADER.
 * `server.config.query.maxMemory` - string, default: `"4GB"`
 * `server.exchangeManager` - object, default: `{}`  
 
@@ -161,9 +165,9 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
         serverAddress: "http://prometheus.example.com"
         threshold: "1"
         metricName: required_workers
-          query: >-
-            sum by (service)
-            (avg_over_time(trino_execution_ClusterSizeMonitor_RequiredWorkers{service={{ include "trino.fullname" . | quote }}}[5s]))
+        query: >-
+          sum by (service)
+          (avg_over_time(trino_execution_ClusterSizeMonitor_RequiredWorkers{service={{ include "trino.fullname" . | quote }}}[5s]))
   ```
 * `server.keda.annotations` - object, default: `{}`  
 
@@ -238,6 +242,17 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
            }
          ]
        }
+  ```
+* `headerAuthenticator` - object, default: `{}`  
+
+  [Header authenticator](https://trino.io/docs/current/develop/header-authenticator.html) configuration. Required when `server.config.authenticationType` contains `HEADER`.
+  Provide the plugin configuration properties. The `header-authenticator.name` value must
+  match the name of the installed authenticator plugin.
+  ```yaml
+  headerAuthenticator:
+    properties: |
+      header-authenticator.name=my-header-authenticator
+      header-authenticator.username-header=X-Authenticated-User
   ```
 * `resourceGroups` - object, default: `{}`  
 
@@ -347,6 +362,12 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
    - exchange.s3.aws-access-key=your-access-key
    - exchange.s3.aws-secret-key=your-secret-key
   ```
+* `sessionProperties` - object, default: `{}`  
+
+  [Session properties manager config file](https://trino.io/docs/current/admin/session-property-managers.html) is mounted to {{ .Values.server.config.path }}/session-property-config.json
+  Set the type property to either:
+  * `configmap`, and provide the session properties manager file contents in `sessionPropertiesConfig`,
+  * `properties`, and provide configuration properties in `properties`.
 * `eventListenerProperties` - list, default: `[]`  
 
   [Event listener](https://trino.io/docs/current/develop/event-listener.html#event-listener) properties. To configure multiple event listeners, add them in `coordinator.additionalConfigFiles` and `worker.additionalConfigFiles`, and set the `event-listener.config-files` property in `additionalConfigProperties` to their locations.
@@ -370,6 +391,7 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
      connector.name=memory
      memory.max-data-per-node=128MB
   ```
+  Supports templating with `tpl`.
 * `additionalCatalogs` - object, default: `{}`  
 
   Deprecated, use `catalogs` instead. Configure additional [catalogs](https://trino.io/docs/current/installation/deployment.html#catalog-properties).
@@ -458,7 +480,7 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
   ```
   Set the name of a secret containing this file in the group.db key
   ```yaml
-   groupAuthSecret: "trino-group-authentication"
+   groupsAuthSecret: "trino-groups-authentication"
   ```
 * `serviceAccount.create` - bool, default: `false`  
 
@@ -496,10 +518,17 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
 * `coordinator.deployment.revisionHistoryLimit` - int, default: `10`  
 
   The number of old ReplicaSets to retain to allow rollback.
-* `coordinator.deployment.strategy` - object, default: `{"rollingUpdate":{"maxSurge":"25%","maxUnavailable":"25%"},"type":"RollingUpdate"}`  
+* `coordinator.deployment.strategy` - object, default: `{}`  
 
   The deployment strategy to use to replace existing pods with new ones.
 * `coordinator.jvm.maxHeapSize` - string, default: `"8G"`
+* `coordinator.jvm.minHeapSize` - string, default: `nil`
+* `coordinator.jvm.maxHeapPercent` - string, default: `nil`  
+
+  Alternative method of setting heap size as a percentage of container memory limits, which is recommended for better JVM ergonomics. `maxHeapSize` must be unset for this to work.
+* `coordinator.jvm.initialHeapPercent` - string, default: `nil`  
+
+  sets the starting heap size as a percentage of container memory limits.  NOTE: to disable dynamic heap resizing when setting the size as a percent, add `-XX:MaxHeapFreeRatio=100` or `-XX:-UseAdaptiveSizePolicy` to `additionalJVMConfig`.
 * `coordinator.jvm.gcMethod.type` - string, default: `"UseG1GC"`
 * `coordinator.jvm.gcMethod.g1.heapRegionSize` - string, default: `"32M"`
 * `coordinator.config.memory.heapHeadroomPerNode` - string, default: `""`
@@ -554,6 +583,17 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
    failureThreshold: 6
    successThreshold: 1
   ```
+* `coordinator.startupProbe` - object, default: `{}`  
+
+  [Startup probe](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/#configure-probes)
+  Example:
+  ```yaml
+   initialDelaySeconds: 10
+   periodSeconds: 2
+   timeoutSeconds: 2
+   failureThreshold: 60
+   successThreshold: 1
+  ```
 * `coordinator.lifecycle` - object, default: `{}`  
 
   Coordinator container [lifecycle events](https://kubernetes.io/docs/tasks/configure-pod-container/attach-handler-lifecycle-event/)
@@ -567,6 +607,17 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
 * `coordinator.nodeSelector` - object, default: `{}`
 * `coordinator.tolerations` - list, default: `[]`
 * `coordinator.affinity` - object, default: `{}`
+* `coordinator.hostAliases` - list, default: `[]`  
+
+  [Adding entries to Pod /etc/hosts with HostAliases] (https://kubernetes.io/docs/tasks/network/customize-hosts-file-for-pods/).
+  Example:
+  ```yaml
+   - hostnames:
+     - name-1
+     - name-2
+     - name-3
+     ip: 1.1.1.1
+  ```
 * `coordinator.additionalConfigFiles` - object, default: `{}`  
 
   Additional config files placed in the default configuration directory. Supports templating the files' contents with `tpl`.
@@ -590,7 +641,23 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
    - name: extras
      mountPath: /usr/share/extras
      readOnly: true
-* `coordinator.annotations` - object, default: `{}`
+* `coordinator.priorityClassName` - string, default: `nil`
+* `coordinator.annotations` - object, default: `{}`  
+
+  Annotations to add to the coordinator pod.
+  By default, the following annotations are added to the coordinator pod:
+  - `checksum/access-control-config` - checksum of the coordinator access control config file;
+  - `checksum/catalog-config` - checksum of the catalog config file;
+  - `checksum/coordinator-config` - checksum of the coordinator config file.
+  This allows for automatic rolling updates on configuration changes. This behaviour can be disabled by manually
+  setting these annotations to fixed constants in the `coordinator.annotations` section.
+  Example:
+  ```yaml
+   annotations:
+     checksum/access-control-config: ""
+     checksum/catalog-config: ""
+     checksum/coordinator-config: ""
+  ```
 * `coordinator.labels` - object, default: `{}`
 * `coordinator.configMounts` - list, default: `[]`  
 
@@ -619,10 +686,13 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
 * `worker.deployment.revisionHistoryLimit` - int, default: `10`  
 
   The number of old ReplicaSets to retain to allow rollback.
-* `worker.deployment.strategy` - object, default: `{"rollingUpdate":{"maxSurge":"25%","maxUnavailable":"25%"},"type":"RollingUpdate"}`  
+* `worker.deployment.strategy` - object, default: `{}`  
 
   The deployment strategy to use to replace existing pods with new ones.
 * `worker.jvm.maxHeapSize` - string, default: `"8G"`
+* `worker.jvm.minHeapSize` - string, default: `nil`
+* `worker.jvm.maxHeapPercent` - string, default: `nil`
+* `worker.jvm.initialHeapPercent` - string, default: `nil`
 * `worker.jvm.gcMethod.type` - string, default: `"UseG1GC"`
 * `worker.jvm.gcMethod.g1.heapRegionSize` - string, default: `"32M"`
 * `worker.config.memory.heapHeadroomPerNode` - string, default: `""`
@@ -630,7 +700,7 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
 * `worker.additionalJVMConfig` - list, default: `[]`
 * `worker.additionalExposedPorts` - object, default: `{}`  
 
-  Additional container ports configured in all worker pods.
+  Additional container ports configured in all worker pods and the worker service.
   Example:
   ```yaml
    https:
@@ -673,6 +743,17 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
    failureThreshold: 6
    successThreshold: 1
   ```
+* `worker.startupProbe` - object, default: `{}`  
+
+  [Startup probe](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/#configure-probes)
+  Example:
+  ```yaml
+   initialDelaySeconds: 10
+   periodSeconds: 2
+   timeoutSeconds: 2
+   failureThreshold: 60
+   successThreshold: 1
+  ```
 * `worker.lifecycle` - object, default: `{}`  
 
   Worker container [lifecycle events](https://kubernetes.io/docs/tasks/configure-pod-container/attach-handler-lifecycle-event/)  Setting `worker.lifecycle` conflicts with `worker.gracefulShutdown`.
@@ -695,6 +776,38 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
 * `worker.nodeSelector` - object, default: `{}`
 * `worker.tolerations` - list, default: `[]`
 * `worker.affinity` - object, default: `{}`
+* `worker.hostAliases` - list, default: `[]`  
+
+  [Adding entries to Pod /etc/hosts with HostAliases] (https://kubernetes.io/docs/tasks/network/customize-hosts-file-for-pods/).
+  Example:
+  ```yaml
+   - hostnames:
+     - name-1
+     - name-2
+     - name-3
+     ip: 1.1.1.1
+  ```
+* `worker.topologySpreadConstraints` - list, default: `[]`  
+
+  Configure [topology spread constraints](https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/) to control how worker pods are spread across your cluster among failure-domains such as nodes, zones, and regions. This is a best practice for achieving high availability and preventing resource hotspots.
+  Example of spreading workers across hostnames and zones:
+  ```yaml
+  topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: "kubernetes.io/hostname"
+      whenUnsatisfiable: "ScheduleAnyway"
+      labelSelector:
+        matchLabels:
+          app.kubernetes.io/name: trino
+          app.kubernetes.io/component: worker
+    - maxSkew: 1
+      topologyKey: "topology.kubernetes.io/zone"
+      whenUnsatisfiable: "DoNotSchedule"
+      labelSelector:
+        matchLabels:
+          app.kubernetes.io/name: trino
+          app.kubernetes.io/component: worker
+  ```
 * `worker.additionalConfigFiles` - object, default: `{}`  
 
   Additional config files placed in the default configuration directory. Supports templating the files' contents with `tpl`.
@@ -720,7 +833,23 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
      mountPath: /usr/share/extras
      readOnly: true
   ```
-* `worker.annotations` - object, default: `{}`
+* `worker.priorityClassName` - string, default: `nil`
+* `worker.annotations` - object, default: `{}`  
+
+  Annotations to add to the worker pods.
+  By default, the following annotations are added to the worker pods:
+  - `checksum/access-control-config` - checksum of the worker access control config file;
+  - `checksum/catalog-config` - checksum of the catalog config file;
+  - `checksum/worker-config` - checksum of the worker config file.
+  This allows for automatic rolling updates on configuration changes. This behaviour can be disabled by manually
+  setting these annotations to fixed constants in the `worker.annotations` section.
+  Example:
+  ```yaml
+   annotations:
+     checksum/access-control-config: ""
+     checksum/catalog-config: ""
+     checksum/worker-config: ""
+  ```
 * `worker.labels` - object, default: `{}`
 * `worker.configMounts` - list, default: `[]`  
 
@@ -789,7 +918,7 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
 * `jmx.exporter.enabled` - bool, default: `false`  
 
   Set to true to export JMX Metrics via HTTP for [Prometheus](https://github.com/prometheus/jmx_exporter) consumption
-* `jmx.exporter.image` - string, default: `"bitnami/jmx-exporter:1.0.1"`
+* `jmx.exporter.image` - string, default: `"bitnamilegacy/jmx-exporter:1.4.0"`
 * `jmx.exporter.pullPolicy` - string, default: `"Always"`
 * `jmx.exporter.port` - int, default: `5556`
 * `jmx.exporter.configProperties` - string, default: `""`  
@@ -865,6 +994,9 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
 * `serviceMonitor.interval` - string, default: `"30s"`  
 
   The serviceMonitor web endpoint interval
+* `serviceMonitor.scrapeTimeout` - string, default: `""`  
+
+  Maximum time to wait for a response. If empty or not set, uses the Prometheus global default.
 * `serviceMonitor.coordinator` - object, default: `{}`  
 
   Override ServiceMonitor configurations for the Trino coordinator.
@@ -909,6 +1041,68 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
    - secretName: chart-example-tls
      hosts:
        - chart-example.local
+  ```
+* `gateway.enabled` - bool, default: `false`  
+
+  Set to true to create HTTPRoute resources for [Kubernetes Gateway API](https://gateway-api.sigs.k8s.io/). The Gateway API is the successor to the Ingress API and provides more advanced routing capabilities.
+  > [!NOTE]
+  > - Requires Gateway API CRDs to be installed in the cluster
+  > - Not recommended to use together with `ingress.enabled` (choose one or the other)
+  > - Requires a Gateway resource to be configured separately
+* `gateway.annotations` - object, default: `{}`  
+
+  Annotations to add to the HTTPRoute resource.
+  Example:
+  ```yaml
+   gateway.networking.k8s.io/example: "value"
+  ```
+* `gateway.parentRefs` - list, default: `[]`  
+
+  References to the Gateway resources that this HTTPRoute should attach to.
+  Example:
+  ```yaml
+   - name: trino-gateway
+     namespace: gateway-system
+     sectionName: https
+  ```
+* `gateway.hostnames` - list, default: `[]`  
+
+  Hostnames to match for routing traffic.
+  Example:
+  ```yaml
+   - trino.example.com
+   - trino-prod.example.com
+  ```
+* `gateway.rules` - list, default: `[]`  
+
+  HTTPRoute rules for routing traffic to Trino. Each rule can use either the simplified `path` format for basic routing, or the full `matches` format for advanced use cases.
+  Simple path-based routing example:
+  ```yaml
+   - path:
+       type: PathPrefix
+       value: /
+     filters:
+       - type: RequestHeaderModifier
+         requestHeaderModifier:
+           set:
+             - name: X-Forwarded-Proto
+               value: https
+  ```
+  Advanced matching example with headers:
+  ```yaml
+   - matches:
+       - path:
+           type: PathPrefix
+           value: /ui
+         headers:
+           - name: X-Custom-Header
+             value: custom-value
+     filters:
+       - type: RequestHeaderModifier
+         requestHeaderModifier:
+           set:
+             - name: X-Forwarded-Proto
+               value: https
   ```
 * `networkPolicy.enabled` - bool, default: `false`  
 
